@@ -1,4 +1,4 @@
-import pygame as py
+import pygame as pg
 
 def main():
     pass

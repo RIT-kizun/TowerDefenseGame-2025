@@ -23,15 +23,7 @@ def main():
                 pg.quit()             # PyGame を終了する。これだけではウィンドウは閉じない。
                 sys.exit()            # ウィンドウを閉じて、プログラムを終了する。
             
-            if event.type == pg.MOUSEBUTTONDOWN:
-                # クリックした場所のタイル情報を取得
-                info = stage.get_tile(event.pos)
-                if info:
-                    if len(info) == 3:
-                        r, c, tile_type = info
-                        print(f"Clicked: Row {r}, Col {c}, Type {tile_type}")
-                    else:
-                        print(f"Clicked: {info}")
+            stage.handle_event(event)
 
         # 描画
         stage.draw(screen)

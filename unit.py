@@ -2,9 +2,10 @@ import pygame as pg
 
 class Unit:
     def __init__(self, r, c):
+        image_size = 75
         self.r, self.c = r, c
         self.color = (0, 0, 255) # 青
-        offset = (80 - self.img_size) // 2
+        offset = (80 - image_size) // 2#余白
         self.x = c * 80 + offset
         self.y = r * 80 + offset
 
@@ -20,7 +21,7 @@ class Blocker(Unit):
         pass
     
     def draw(self,screen):
-        screen.bilt(self.img_blocker,(self.x,self.y))
+        screen.blit(self.img_blocker,(self.x,self.y))
         
 
 class Shooter(Unit):

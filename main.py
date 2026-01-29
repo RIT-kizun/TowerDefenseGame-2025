@@ -1,37 +1,43 @@
-import pygame
+import pygame as pg
 import sys
-from stages import Stage, TILE_SIZE
+import stages
 
 def main():
-    pygame.init()
-    # 9列×80px, 6行×80px
-    screen = pygame.display.set_mode((720, 480))
-    pygame.display.set_caption("Tower Defense Project")
-    clock = pygame.time.Clock()
+    pg.init()
+    # マップ9列*6行,1マス80px + 下部ボタン部分1行
+    screen = pg.display.set_mode((720, 560))
+    pg.display.set_caption("Tower Defense Game")
+    clock = pg.time.Clock()
+    stage = stages.Playing(screen)
     
-    stage = Stage()
+    
 
     while True:
-        screen.fill((0, 0, 0))
+        screen.fill((255, 255, 255))
         
-        # イベント処理
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+        stage = stage.blit(screen,clock)
+        
+        # 閉じるボタンが押されたら終了する。
+        for event in pg.event.get():  # イベント一覧を取得して、各イベントを調べる。
+            if event.type == pg.QUIT: # もし、閉じるボタンが押されたら。
+                pg.quit()             # PyGame を終了する。これだけではウィンドウは閉じない。
+                sys.exit()            # ウィンドウを閉じて、プログラムを終了する。
             
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pg.MOUSEBUTTONDOWN:
                 # クリックした場所のタイル情報を取得
                 info = stage.get_tile(event.pos)
                 if info:
-                    r, c, tile_type = info
-                    print(f"Clicked: Row {r}, Col {c}, Type {tile_type}")
+                    if len(info) == 3:
+                        r, c, tile_type = info
+                        print(f"Clicked: Row {r}, Col {c}, Type {tile_type}")
+                    else:
+                        print(f"Clicked: {info}")
 
         # 描画
         stage.draw(screen)
         
-        pygame.display.flip()
-        clock.tick(60)
+        pg.display.flip()#画面全体を更新
+        clock.tick(60)#1秒間に60回
 
 if __name__ == "__main__":
     main()

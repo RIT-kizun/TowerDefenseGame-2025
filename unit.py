@@ -3,8 +3,10 @@ import pygame as pg
 class Unit:
     def __init__(self, r, c):
         self.r, self.c = r, c
-        self.x, self.y = c * 80, r * 80
         self.color = (0, 0, 255) # 青
+        offset = (80 - self.img_size) // 2
+        self.x = c * 80 + offset
+        self.y = r * 80 + offset
 
 class Blocker(Unit):
     def __init__(self,r,c):

@@ -1,13 +1,13 @@
 import pygame as pg
 import enemy as e
 import unit as u
-import config as c
+import config
 import time
 import datetime
 
 TILE_SIZE = 80
 
-COST = 0
+
 WALL   = 0  # 壁（配置不可）
 ROAD   = 1  # 道（味方1: Blocker用）
 HIGH   = 2  # 高台（味方2: Shooter用）
@@ -73,7 +73,10 @@ class Playing(Stage):
         self.img_cancel = pg.image.load("assets/cancel.png")
         self.font = pg.font.SysFont(None, 27)
         self.selected_unit = None
+        self.cost_timer = 0
         self.units = []    # Unitオブジェクトのリスト
+        self.enemies = []
+        self.spawn_timer = 0
         
 
 
@@ -83,13 +86,32 @@ class Playing(Stage):
         screen.blit(self.img_select,(320,480))
         screen.blit(self.img_cancel,(480,480))
         
+        #セレクト中の処理
         if self.selected_unit:
             if self.selected_unit == "blocker":
                 screen.blit(self.img_blocker,(410,490))
             if self.selected_unit == "shooter":
                 screen.blit(self.img_shooter,(410,490))
-        text_img = self.font.render(f"COST: {COST}", True, pg.Color("BLACK"))
+
+        #コスト増加
+        self.cost_timer += clock.get_time()
+        if self.cost_timer >= 1000:
+            config.COST += 1
+            self.cost_timer -= 1000
+        text_img = self.font.render(f"COST: {config.COST}", True, pg.Color("BLACK"))
         screen.blit(text_img, (int(7.5*80), int(6.3*80)))
+        
+        #エネミーの出現
+        self.spawn_timer += clock.get_time()
+        if self.spawn_timer > 3000:
+            self.enemies.append(e.Enemy(1, 0)) 
+            self.spawn_timer = 0
+            
+        for enemy in self.enemies[:]:
+            enemy.move(self.MAP_DATA)
+            enemy.draw(screen)
+            if enemy.reached_goal:
+                self.enemies.remove(enemy)
         return self
     
     def draw(self, screen):
@@ -125,10 +147,10 @@ class Playing(Stage):
         
 
         # ユニットごとの配置条件
-        if self.selected_unit == "blocker" and tile_type == ROAD:
+        if self.selected_unit == "blocker" and tile_type == ROAD and config.COST >= 8:
             self.units.append(u.Blocker(r, c))
             self.selected_unit = None # 配置後に選択解除
             
-        elif self.selected_unit == "shooter" and tile_type == HIGH:
+        elif self.selected_unit == "shooter" and tile_type == HIGH and config.COST >= 10:
             self.units.append(u.Shooter(r, c))
             self.selected_unit = None # 配置後に選択解除

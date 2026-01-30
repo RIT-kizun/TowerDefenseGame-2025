@@ -1,4 +1,5 @@
 import pygame as pg
+import config
 
 class Unit:
     def __init__(self, r, c):
@@ -14,6 +15,7 @@ class Blocker(Unit):
         super().__init__(r, c)
         self.hp = 15
         self.block = 2
+        config.COST -= 8
         self.img_blocker = pg.image.load("assets/blocker.png")
         
 
@@ -29,6 +31,7 @@ class Shooter(Unit):
         super().__init__(r,c)
         self.hp = 3
         self.block = 0
+        config.COST -= 10
         self.img_shooter = pg.image.load("assets/shooter.png")
         
     def blit(self):

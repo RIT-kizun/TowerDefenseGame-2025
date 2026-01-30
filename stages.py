@@ -1,6 +1,7 @@
 import pygame as pg
 import enemy as e
 import unit as u
+import config as c
 import time
 import datetime
 
@@ -43,17 +44,18 @@ class Stage:
                 pg.draw.rect(screen, (50, 50, 50), rect, 1)
 
     def get_tile(self, mouse_pos): #マウス座標
-        if mouse_pos[1] < 480:
-            c = mouse_pos[0] // TILE_SIZE
-            r = mouse_pos[1] // TILE_SIZE
-            if 0 <= r < 6 and 0 <= c < 9:
+        c = mouse_pos[0] // TILE_SIZE
+        r = mouse_pos[1] // TILE_SIZE
+        if r < 6:
+            if 0 <= c < 9:
                 return r, c, self.MAP_DATA[r][c]
-            
-        if mouse_pos[1] >= 480:
-            if 0 <= mouse_pos[0] < 160: 
+        else:        
+            if 0 <= c <= 1: 
                 return "blocker"
-            if 160 <= mouse_pos[0] < 320: 
+            if  2<= c <= 3: 
                 return "shooter"
+            if c == 6:
+                return -1
         
         return None
 
@@ -62,8 +64,14 @@ class Playing(Stage):
     def __init__(self, screen):
         super().__init__()
         self.img_shooter_cost = pg.image.load("assets/shooter_cost.png")
+        self.img_shooter = pg.image.load("assets/shooter.png")
+        self.img_shooter = pg.transform.scale(self.img_shooter,(60,60))
         self.img_blocker_cost = pg.image.load("assets/blocker_cost.png")
-        self.font = pg.font.SysFont(None, 24)
+        self.img_blocker = pg.image.load("assets/blocker.png")
+        self.img_blocker = pg.transform.scale(self.img_blocker,(60,60))
+        self.img_select = pg.image.load("assets/select.png")
+        self.img_cancel = pg.image.load("assets/cancel.png")
+        self.font = pg.font.SysFont(None, 27)
         self.selected_unit = None
         self.units = []    # Unitオブジェクトのリスト
         
@@ -72,8 +80,16 @@ class Playing(Stage):
     def blit(self, screen, clock):
         screen.blit(self.img_shooter_cost, (160, 480))
         screen.blit(self.img_blocker_cost,(0,480))
-        text_img = self.font.render(f"COST: {COST}", True, pg.Color("WHITE"))
-        screen.blit(text_img, (5*80, 6*80))
+        screen.blit(self.img_select,(320,480))
+        screen.blit(self.img_cancel,(480,480))
+        
+        if self.selected_unit:
+            if self.selected_unit == "blocker":
+                screen.blit(self.img_blocker,(410,490))
+            if self.selected_unit == "shooter":
+                screen.blit(self.img_shooter,(410,490))
+        text_img = self.font.render(f"COST: {COST}", True, pg.Color("BLACK"))
+        screen.blit(text_img, (int(7.5*80), int(6.3*80)))
         return self
     
     def draw(self, screen):
@@ -94,6 +110,10 @@ class Playing(Stage):
             elif isinstance(info, tuple):
                 r, c, tile_type = info
                 self._try_place_unit(r, c, tile_type)
+                
+            elif isinstance(info,int):
+                self.selected_unit = None
+
 
     def _try_place_unit(self, r, c, tile_type):
         if not self.selected_unit:
@@ -102,6 +122,7 @@ class Playing(Stage):
         # すでに何かが置かれていないかチェック
         if any(u.r == r and u.c == c for u in self.units):
             return
+        
 
         # ユニットごとの配置条件
         if self.selected_unit == "blocker" and tile_type == ROAD:
@@ -109,6 +130,5 @@ class Playing(Stage):
             self.selected_unit = None # 配置後に選択解除
             
         elif self.selected_unit == "shooter" and tile_type == HIGH:
-            # シューターの実装時にここに追加
-            pass
-    
+            self.units.append(u.Shooter(r, c))
+            self.selected_unit = None # 配置後に選択解除

@@ -25,29 +25,16 @@ class Blocker(Unit):
         
 
 class Shooter(Unit):
-    def __init__(self,image_file):
-        super().__init__()
+    def __init__(self,r,c):
+        super().__init__(r,c)
         self.hp = 3
+        self.block = 0
+        self.img_shooter = pg.image.load("assets/shooter.png")
         
     def blit(self):
         pass
+    
+    def draw(self,screen):
+        screen.blit(self.img_shooter,(self.x,self.y))
         
-class Set(Unit):
-    def __init__(self, r, c):
-        super().__init__(r, c)
-    def blit():
-        pass      
 
-    # def draw(self, screen):
-    #     m, s = 20, 80
-    #     cx, cy = self.x + s//2, self.y + s//2
-    #     # 向きに合わせた三角形の頂点
-    #     if self.direction == "RIGHT":
-    #         pts = [(self.x+m, self.y+m), (self.x+m, self.y+s-m), (self.x+s-m, cy)]
-    #     elif self.direction == "LEFT":
-    #         pts = [(self.x+s-m, self.y+m), (self.x+s-m, self.y+s-m), (self.x+m, cy)]
-    #     elif self.direction == "UP":
-    #         pts = [(self.x+m, self.y+s-m), (self.x+s-m, self.y+s-m), (cx, self.y+m)]
-    #     else: # DOWN
-    #         pts = [(self.x+m, self.y+m), (self.x+s-m, self.y+m), (cx, self.y+s-m)]
-    #     pg.draw.polygon(screen, self.color, pts)

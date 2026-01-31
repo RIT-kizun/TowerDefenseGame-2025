@@ -90,6 +90,7 @@ class Playing(Stage):
         self.goal_hp = 3
         self.max_enemy = 15
         self.curr_enemy = 0
+        self.bullets = []
         
         
 
@@ -100,6 +101,10 @@ class Playing(Stage):
         screen.blit(self.img_blocker_cost,(0,480))
         screen.blit(self.img_select,(320,480))
         screen.blit(self.img_cancel,(480,480))
+        
+        for unit in self.units[:]:
+            if unit.hp <= 0:
+                self.units.remove(unit)
         
         
         #セレクト中の処理
@@ -129,16 +134,52 @@ class Playing(Stage):
             self.spawn_timer = 0
             
         for enemy in self.enemies[:]:
-            enemy.move(self.MAP_DATA,self.units)
+            enemy.move(self.MAP_DATA,self.units,clock)
             enemy.draw(screen)
             if enemy.reached_goal:
                 if enemy.blocking_unit:
                     enemy.blocking_unit -= 1
                 self.enemies.remove(enemy)
                 self.goal_hp -= 1
+                
+                
+                
+                
+        for unit in self.units:
+            if isinstance(unit, u.Shooter):
+                unit.update(clock, self.bullets)
+
+        # 2. 矢の移動と当たり判定
+        for bullet in self.bullets[:]:
+            bullet.move()
+            bullet.draw(screen)
+            
+            # 敵との当たり判定
+            bullet_rect = pg.Rect(bullet.x, bullet.y, 8, 8)
+            for enemy in self.enemies:
+                enemy_rect = pg.Rect(enemy.x, enemy.y, 60, 60)
+                if bullet_rect.colliderect(enemy_rect):
+                    enemy.hp -= 1
+                    bullet.is_active = False
+                    break
+            
+            if not bullet.is_active:
+                self.bullets.remove(bullet)
+
+        # 3. 敵の死神判定（HPが0以下なら消す）
+        for enemy in self.enemies[:]:
+            if getattr(enemy, "hp", 1) <= 0:
+                if enemy.blocking_unit:
+                    enemy.blocking_unit.curr_block -= 1
+                self.enemies.remove(enemy)
+                
+                
+                
         #GAMEOVER
         if self.goal_hp == 0:
             return GameOver(screen)
+
+        #GAMECLEAR
         if self.curr_enemy == self.max_enemy and len(self.enemies) == 0:
             return GameClear(screen)
 
@@ -152,17 +193,17 @@ class Playing(Stage):
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
             info = self.get_tile(event.pos)
-            print(f"Selected: {info}")#デバッグ用ログ
+
             
-            # ユニット選択（文字列が返ってきた場合）
+            # 文字列が返ってきた場合
             if isinstance(info, str):
                 self.selected_unit = info
             
-            # ユニット配置（座標タプルが返ってきた場合）
+            # 座標が返ってきた場合
             elif isinstance(info, tuple):
                 r, c, tile_type = info
                 self._try_place_unit(r, c, tile_type)
-                
+            #   
             elif isinstance(info,int):
                 self.selected_unit = None
 
@@ -171,7 +212,6 @@ class Playing(Stage):
         if not self.selected_unit:
             return
 
-        # すでに何かが置かれていないかチェック
         if any(u.r == r and u.c == c for u in self.units):
             return
         

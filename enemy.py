@@ -1,4 +1,8 @@
 import pygame as pg
+import time
+import datetime
+import sys
+
 
 class Enemy:
     def __init__(self, r, c):
@@ -6,20 +10,35 @@ class Enemy:
         self.x = c * 80 + 10 
         self.y = r * 80 + 10
         self.speed = 2
-        self.img = pg.transform.scale(pg.image.load("assets/enemy.png"), (60, 60))
+        self.normal_img = pg.image.load("assets/enemy.png")
+        self.atk_img = pg.image.load("assets/enemy_attack.png")
+        self.atk_img = pg.transform.scale(self.atk_img,(60,60))
         self.rect = pg.Rect(self.x, self.y, 60, 60)
         self.reached_goal = False
         self.direction = "RIGHT"
         self.last_grid = (r, c)
         self.blocked = False
         self.blocking_unit = None
+        self.hp = 4
+        self.atk = 1
+        self.attack_timer = 0
+        self.attack_interval = 2 * 1000
+        self.attacking = False
 
-    def move(self, map_data,units):
+    def move(self, map_data,units,clock):
+        self.is_attacking = False
+        self.img = self.normal_img
         curr_c = int((self.x + 30) // 80)
         curr_r = int((self.y + 30) // 80)
         
         if self.blocking_unit:
             if self.blocking_unit in units:
+                self.attacking = True
+                self.img = self.atk_img
+                self.attack_timer += clock.get_time()
+                if self.attack_timer >= self.attack_interval:
+                    self.blocking_unit.hp -= self.atk
+                    self.attack_timer = 0
                 return
             else:
                 self.blocking_unit = None

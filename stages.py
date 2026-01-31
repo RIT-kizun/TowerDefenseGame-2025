@@ -3,6 +3,7 @@ import enemy as e
 import unit as u
 import config
 import time
+import sys
 import datetime
 
 TILE_SIZE = 80
@@ -47,8 +48,17 @@ class Stage:
         c = mouse_pos[0] // TILE_SIZE
         r = mouse_pos[1] // TILE_SIZE
         if r < 6:
-            if 0 <= c < 9:
-                return r, c, self.MAP_DATA[r][c]
+            found_unit = None
+            for unit in self.units:
+                if unit.r == r and unit.c == c:
+                    found_unit = unit
+                    break
+            
+            if found_unit:
+                found_unit.rotate()
+            else:
+                if 0 <= c < 9:
+                    return r, c, self.MAP_DATA[r][c]
         else:        
             if 0 <= c <= 1: 
                 return "blocker"
@@ -77,14 +87,20 @@ class Playing(Stage):
         self.units = []    # Unitオブジェクトのリスト
         self.enemies = []
         self.spawn_timer = 0
+        self.goal_hp = 3
+        self.max_enemy = 15
+        self.curr_enemy = 0
+        
         
 
 
     def blit(self, screen, clock):
+        self.draw(screen)
         screen.blit(self.img_shooter_cost, (160, 480))
         screen.blit(self.img_blocker_cost,(0,480))
         screen.blit(self.img_select,(320,480))
         screen.blit(self.img_cancel,(480,480))
+        
         
         #セレクト中の処理
         if self.selected_unit:
@@ -98,24 +114,38 @@ class Playing(Stage):
         if self.cost_timer >= 1000:
             config.COST += 1
             self.cost_timer -= 1000
-        text_img = self.font.render(f"COST: {config.COST}", True, pg.Color("BLACK"))
-        screen.blit(text_img, (int(7.5*80), int(6.3*80)))
+        text_COST_img = self.font.render(f"COST: {config.COST}", True, pg.Color("BLACK"))
+        text_LIFE_img = self.font.render(f"LIFE: {self.goal_hp}", True, pg.Color("BLACK"))
+        text_enemy_count_img = self.font.render(f"ENEMY: {self.max_enemy - self.curr_enemy}", True, pg.Color("BLACK"))
+        screen.blit(text_COST_img, (int(7.5*80), int(6*80)))
+        screen.blit(text_LIFE_img, (int(7.5*80), int(6.2*80)))
+        screen.blit(text_enemy_count_img, (int(7.5*80), int(6.4*80)))
         
         #エネミーの出現
         self.spawn_timer += clock.get_time()
-        if self.spawn_timer > 3000:
+        if self.spawn_timer > 3000 and self.curr_enemy < self.max_enemy:
             self.enemies.append(e.Enemy(1, 0)) 
+            self.curr_enemy += 1
             self.spawn_timer = 0
             
         for enemy in self.enemies[:]:
-            enemy.move(self.MAP_DATA)
+            enemy.move(self.MAP_DATA,self.units)
             enemy.draw(screen)
             if enemy.reached_goal:
+                if enemy.blocking_unit:
+                    enemy.blocking_unit -= 1
                 self.enemies.remove(enemy)
+                self.goal_hp -= 1
+        #GAMEOVER
+        if self.goal_hp == 0:
+            return GameOver(screen)
+        if self.curr_enemy == self.max_enemy and len(self.enemies) == 0:
+            return GameClear(screen)
+
         return self
     
     def draw(self, screen):
-        super().draw(screen)  # マップの描画
+        super().draw(screen)
         for unit in self.units:  # 配置したユニットを順番に描画
             unit.draw(screen)
     
@@ -154,3 +184,54 @@ class Playing(Stage):
         elif self.selected_unit == "shooter" and tile_type == HIGH and config.COST >= 10:
             self.units.append(u.Shooter(r, c))
             self.selected_unit = None # 配置後に選択解除
+ 
+
+
+class GameOver(Stage):
+    def __init__(self, screen):
+        self.surf = pg.Surface((screen.get_width(), screen.get_height()), pg.SRCALPHA)
+        self.surf.fill(pg.Color("WHITE"))
+        font = pg.font.SysFont(None, 100)
+        text = font.render("GAME OVER!", True, pg.Color("RED"))
+        text_rect = text.get_rect(center=self.surf.get_rect().center)
+        self.steps = 0
+        self.surf.blit(text, text_rect)
+        
+    def blit(self, screen, clock):
+        self.steps += 1
+        keys = pg.key.get_pressed()
+        mouses = pg.mouse.get_pressed()
+        screen.blit(self.surf, (0, 0))
+        # 1秒（60フレーム）待機後に何か入力があればリスタート
+        if self.steps > 60 and (any(keys) or any(mouses)):
+            print("----To Be Continued---→")
+            pg.quit()
+            sys.exit()
+        return self
+    
+    def handle_event(self,event):
+        pass
+
+class GameClear(Stage):
+    def __init__(self, screen):
+        self.steps = 0
+        self.surf = pg.Surface((screen.get_width(), screen.get_height()), pg.SRCALPHA)
+        self.surf.fill(pg.Color("WHITE"))
+        font = pg.font.SysFont(None, 100)
+        text = font.render("GAME CLEAR!", True, pg.Color("BLUE"))
+        text_rect = text.get_rect(center=self.surf.get_rect().center)
+        self.surf.blit(text, text_rect)
+
+    def blit(self, screen, clock):
+        self.steps += 1
+        keys = pg.key.get_pressed()
+        mouses = pg.mouse.get_pressed()
+        screen.blit(self.surf, (0, 0))
+        if self.steps > 60 and (any(keys) or any(mouses)):
+            print("CONGTATULATIONS!!")
+            pg.quit
+            sys.exit()
+        return self
+
+    def handle_event(self,event):
+        pass

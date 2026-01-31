@@ -14,6 +14,7 @@ def main():
 
     while True:
         screen.fill((255, 255, 255))
+
         
         stage = stage.blit(screen,clock)
         
@@ -25,9 +26,6 @@ def main():
             
             stage.handle_event(event)
 
-        # 描画
-        stage.draw(screen)
-        
         pg.display.flip()#画面全体を更新
         clock.tick(60)#1秒間に60回
 

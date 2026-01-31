@@ -187,7 +187,7 @@ class Playing(Stage):
     
     def draw(self, screen):
         super().draw(screen)
-        for unit in self.units:  # 配置したユニットを順番に描画
+        for unit in self.units:
             unit.draw(screen)
     
     def handle_event(self, event):

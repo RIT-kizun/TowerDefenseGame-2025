@@ -48,7 +48,6 @@ class Enemy:
                 if u.curr_block < u.max_block:
                     self.blocking_unit = u
                     u.curr_block += 1
-                    print(u.curr_block)
                     return
 
         

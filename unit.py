@@ -60,5 +60,3 @@ class Shooter(Unit):
     
     def draw(self,screen):
         screen.blit(self.img_shooter,(self.x,self.y))
-        
-

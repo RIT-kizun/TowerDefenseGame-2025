@@ -15,10 +15,14 @@ class Bullet:
 
     def move(self):
         # 向きに合わせて移動
-        if self.angle == 0:    self.x += self.speed   # 右
-        elif self.angle == 90: self.y -= self.speed   # 上
-        elif self.angle == 180: self.x -= self.speed  # 左
-        elif self.angle == 270: self.y += self.speed  # 下
+        if self.angle == 0:
+            self.x += self.speed   # 右
+        elif self.angle == 90:
+            self.y -= self.speed   # 上
+        elif self.angle == 180:
+            self.x -= self.speed  # 左
+        elif self.angle == 270:
+            self.y += self.speed  # 下
         
         self.distance += self.speed
         if self.distance >= self.max_distance:

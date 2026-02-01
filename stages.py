@@ -180,7 +180,7 @@ class Playing(Stage):
                 self.enemies.remove(enemy)
 
         #GAMEOVER
-        if self.goal_hp == 0:
+        if self.goal_hp <= 0:
             return GameOver(screen)
 
         #GAMECLEAR

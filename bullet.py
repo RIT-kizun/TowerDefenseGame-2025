@@ -1,7 +1,10 @@
+"""shooterの弾に関する処理"""
 import pygame as pg
 
 class Bullet:
+    """shooterが発射する弾"""
     def __init__(self, x, y, angle):
+        """初期化"""
         self.x = x + 36
         self.y = y + 36
         self.angle = angle
@@ -14,7 +17,7 @@ class Bullet:
         self.img = pg.transform.rotate(self.img, angle)
 
     def move(self):
-        # 向きに合わせて移動
+        """向きに合わせて移動させる"""
         if self.angle == 0:
             self.x += self.speed   # 右
         elif self.angle == 90:
@@ -23,10 +26,11 @@ class Bullet:
             self.x -= self.speed  # 左
         elif self.angle == 270:
             self.y += self.speed  # 下
-        
+
         self.distance += self.speed
         if self.distance >= self.max_distance:
             self.is_active = False
 
     def draw(self, screen):
+        """描画処理"""
         screen.blit(self.img, (self.x, self.y))
